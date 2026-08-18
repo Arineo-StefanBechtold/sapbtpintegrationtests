@@ -1,0 +1,34 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'me.cxdev.testing'
+version = '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'org.yaml:snakeyaml:2.2'
+
+    compileOnly 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+
+    api 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    api 'org.xmlunit:xmlunit-core:2.9.1'
+    api 'org.skyscreamer:jsonassert:1.5.1'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}

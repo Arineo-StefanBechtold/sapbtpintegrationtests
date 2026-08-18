@@ -1,0 +1,16 @@
+{
+  "d": {
+    "results": [
+      {
+        "MessageGuid": "msg-001",
+        "CorrelationId": "corr-001",
+        "Status": "COMPLETED"
+      },
+      {
+        "MessageGuid": "msg-002",
+        "CorrelationId": "corr-001",
+        "Status": "COMPLETED"
+      }
+    ]
+  }
+}
