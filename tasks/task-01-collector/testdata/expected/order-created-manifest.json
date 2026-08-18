@@ -1,0 +1,14 @@
+{
+  "runId": "run-order-created",
+  "messages": [
+    {
+      "messageId": "MSG-ORDER-CREATED-1",
+      "documents": [
+        {
+          "sequenceNumber": 1,
+          "contentType": "application/xml"
+        }
+      ]
+    }
+  ]
+}

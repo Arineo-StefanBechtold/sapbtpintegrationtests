@@ -1,0 +1,4 @@
+{
+  "event": "order-created",
+  "orderId": "4711"
+}

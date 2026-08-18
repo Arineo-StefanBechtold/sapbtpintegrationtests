@@ -1,0 +1,11 @@
+{
+  "d": {
+    "results": [
+      {
+        "correlationId": "corr-order-created",
+        "messageId": "MSG-ORDER-CREATED-1",
+        "status": "COMPLETED"
+      }
+    ]
+  }
+}
