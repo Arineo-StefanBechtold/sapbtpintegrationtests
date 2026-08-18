@@ -1,0 +1,20 @@
+{
+  "name": "cpi-test-collector",
+  "version": "0.1.0",
+  "description": "Minimal collector service for CPI integration tests",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/**/*.test.js"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1"
+  },
+  "devDependencies": {
+    "@fastify/multipart": "^8.3.1"
+  },
+  "license": "Apache-2.0"
+}
