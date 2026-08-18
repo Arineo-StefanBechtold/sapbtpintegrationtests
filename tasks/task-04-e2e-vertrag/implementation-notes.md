@@ -23,11 +23,23 @@ Dieser Task ist die Integrationsabsicherung für alles, was in den vorherigen Ta
 - Vermeide zu große, monolithische E2E-Szenarien.
 - Ein einzelner sauberer End-to-End-Test ist wertvoller als viele fragile.
 
-## Offene Punkte
-- Welche Fixtures werden dafür genutzt?
-- Welche Reports sind für die Pipeline erforderlich?
-- Welche Abweichungen gelten als Vertragsbruch?
-- Welche Mindestdiagnose wird erwartet?
+## Technologieentscheidungen
+
+### Fixtures
+- Wiederverwendung bestehender Recordings statt Neuerfindung: Collector-Antworten aus `tasks/task-01-collector/testdata/`, Monitoring-Antworten aus `tasks/task-02-framework/testdata/recordings/`.
+- Zusätzlich synthetische E2E-Request-/Expected-Paare, abgeleitet aus den Suite-Beispielfällen `order-created`/`order-cancelled`.
+- Der Collector läuft als echte lokale Instanz (kein Mock), um den tatsächlichen Vertrag zu prüfen. Die Monitoring-API wird über WireMock mit den aufgezeichneten Antworten simuliert — kein Live-Tenant nötig.
+
+### Reports
+- Standard Gradle/JUnit-Testreport (HTML+XML) als Basis.
+- Zusätzlich `reports/e2e-summary.json` (Runübersicht), `reports/contract-mismatches.md` (menschenlesbare Liste von Vertragsabweichungen) und `reports/residual-state.json` (Snapshot überzähliger Dokumente je Run).
+
+### Vertragsbruch-Definition
+- Als Vertragsbruch zählen ausschließlich Schema-/Status-/Struktur-Abweichungen: falscher HTTP-Status, fehlendes Pflichtfeld, abweichender Content-Type, Schema-Verletzung in Manifest- oder Header-Struktur.
+- Inhaltliche Payload-Abweichungen (z. B. falscher Bestellwert) sind kein Vertragsbruch, sondern ein regulärer fachlicher Testfehler der Suite.
+
+### Mindestdiagnose
+- Jede Fehlermeldung bzw. jeder Report-Eintrag enthält mindestens: `runId`, `correlationId`, alle beteiligten `messageIds`, den verletzten Vertragsteil (Endpunkt + erwartetes vs. tatsächliches Schema/Status), einen Zeitstempel und einen gekürzten Response-Ausschnitt (ohne Secrets).
 
 ## Hinweis an Agenten
 Wenn ein Fehler auftaucht, zuerst Vertragsbruch vs. Testfehler unterscheiden.

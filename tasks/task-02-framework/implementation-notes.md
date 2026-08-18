@@ -26,11 +26,24 @@ Das Framework ist die intelligente Schicht. Es kennt Monitoring, Message-ID-List
 - Die Collector-Schnittstelle sollte gegen das API-Contract getestet werden.
 - Die Öffnung für spätere Wiederverwendung ist wichtig; keine Sackgassen bauen.
 
-## Offene Punkte
-- Konkrete HTTP-Client-Wahl
-- Konkrete XML-/JSON-Vergleichsbibliothek
-- Konkrete Paketnamen und Artefakt-Koordinaten
-- Konkrete Konfiguration der JUnit-Extensions
+## Technologieentscheidungen
+
+### Build-Tool & Koordinaten
+- Build-Tool: Gradle.
+- groupId/Namespace: `me.cxdev.testing`, artifactId: `cpi-test-framework`, Basispaket: `me.cxdev.testing.cpi`.
+- Version: `1.0.0-SNAPSHOT`, packaging: `jar`.
+
+### HTTP-Client
+- OkHttp für `CpiMonitoringClient` und `CollectorClient`, jeweils hinter einem eigenen Client-Interface gekapselt (z. B. `HttpTransport`), damit die Bibliothek austauschbar bleibt und Tests mit MockWebServer möglich sind.
+
+### Vergleichsbibliothek
+- XMLUnit 2.x für XML-Vergleiche (Diff-Builder, Placeholder-/Ignore-Support).
+- JSONassert für JSON-Vergleiche (lenient mode, Pfad-Ignorierung).
+- Beide Bibliotheken werden hinter einem gemeinsamen `DocumentComparator`-Interface gekapselt, damit Testfälle nicht direkt von XMLUnit/JSONassert abhängen.
+
+### JUnit-Extension-Konfiguration
+- `CpiTestExtension` implementiert `BeforeAllCallback` (legt Run an, erzeugt `testRunId`), `AfterAllCallback` (Release/Cleanup des Runs) und `ParameterResolver` (injiziert `CpiTestFramework`/`CpiTestConfig` als Konstruktor- oder Methodenparameter).
+- Konfiguration erfolgt über eine YAML-Datei mit Umgebungsvariablen-Override; die Profilwahl erfolgt über die System-Property `cpi.test.profile`.
 
 ## Hinweis an Agenten
 Wenn eine technische Entscheidung fehlt, dokumentieren und nicht stillschweigend erfinden.

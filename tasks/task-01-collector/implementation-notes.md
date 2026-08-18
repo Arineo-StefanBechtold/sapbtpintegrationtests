@@ -23,11 +23,30 @@ Der Collector soll bewusst simpel bleiben. Alles, was im Framework liegen kann, 
 - Ein lokaler Testmodus ist Pflicht.
 - Gesundheit und Speichererreichbarkeit müssen separat prüfbar sein.
 
-## Offene Punkte
-- Konkrete Technologiewahl für Laufzeit und Paketmanager
-- Konkretes Format der Message-ID-basierten Pfadstruktur
-- Konkrete Regel für Sequenznummern
-- Konkrete TTL-/Aufräumstrategie
+## Technologieentscheidungen
+
+### Laufzeit & Paketmanager
+- Node.js 22 LTS, Paketmanager npm.
+- Web-Framework: Fastify (schlank, gute native Unterstützung für Streams/rohe Binary-Bodies, passt zur Anforderung "Payload unverändert speichern").
+- Plain JavaScript (kein TypeScript-Build-Schritt), um die Implementierung so einfach wie möglich zu halten.
+- Deploybar als klassische Cloud-Foundry-Node-App (nodejs_buildpack) auf BTP, lokal per `npm start` startbar.
+
+### Pfadstruktur der Ablage
+- Basisverzeichnis konfigurierbar (z. B. `COLLECTOR_DATA_DIR`, lokal Default `./data`).
+- Struktur: `data/{testRunId}/{messageId}/{sequenceNumber}.payload` (rohe Bytes) und `data/{testRunId}/{messageId}/{sequenceNumber}.headers.json` (vollständige Header als JSON).
+- `X-Test-Run-Id` ist optional; fehlt der Header, wird die feste testRunId `default` verwendet — es gibt also immer eine Gruppierungsebene.
+- Pro Run existiert ein `manifest.json` im Run-Verzeichnis, das alle Message-IDs mit ihren Sequenznummern, Content-Type und Zeitstempel auflistet und bei jeder Ablage aktualisiert wird.
+
+### Sequenznummern-Vergabe
+- Sequenznummern beginnen bei 1 pro `(testRunId, messageId)`-Gruppe und werden fortlaufend vergeben.
+- Da Node zwar single-threaded ist, async I/O aber interleaven kann, wird die Vergabe pro Gruppe über eine In-Memory-Promise-Chain (Mutex je Schlüssel `testRunId/messageId`) serialisiert, um Race Conditions bei parallelen Requests auf dieselbe Message ID zu verhindern.
+- Der Prozessspeicher ist dabei nicht die alleinige Wahrheit: Beim Start des Collectors wird das Datenverzeichnis gescannt und die jeweils höchste vorhandene Sequenznummer je Gruppe rekonstruiert, sodass die Vergabe nach einem Neustart nahtlos fortgesetzt wird.
+
+### TTL- / Aufräumstrategie
+- Auto-TTL ist standardmäßig aktiv — auch lokal — über einen periodischen Sweep-Job (z. B. alle 10 Minuten).
+- TTL ist konfigurierbar über `COLLECTOR_TTL_HOURS`, Default kurz (z. B. 2 Stunden), da Test-Runs kurzlebig sind.
+- Der Zeitstempel je Run wird beim ersten eingehenden Dokument im `manifest.json` festgehalten und dient als Grundlage für die TTL-Prüfung.
+- Zusätzlich bleiben die expliziten Endpunkte (`DELETE /runs/{runId}`, Release je Message-Gruppe) der primäre Weg, um Runs gezielt vor Ablauf der TTL zu entfernen.
 
 ## Hinweis an Agenten
 Wenn eine Anforderung unklar erscheint, nicht selbst umdeuten, sondern im Zweifel sichtbar markieren und rückfragen.
