@@ -38,3 +38,14 @@ Der Collector speichert eingehende Dokumente message-id-basiert mit fortlaufende
 
 ## Abschluss
 Der Task gilt als fertig, wenn der Collector lokal läuft, Dokumente korrekt ablegt und wieder bereitstellt, und die Abnahmekriterien erfüllt sind.
+
+## Lokale Ausführung
+
+```bash
+cd /home/runner/work/sapbtpintegrationtests/sapbtpintegrationtests/tasks/task-01-collector
+python -m pip install -e .[test]
+pytest
+uvicorn app.main:app --host 0.0.0.0 --port 8080
+```
+
+Standardablage: `./data` (überschreibbar über `COLLECTOR_STORAGE_DIR`).
