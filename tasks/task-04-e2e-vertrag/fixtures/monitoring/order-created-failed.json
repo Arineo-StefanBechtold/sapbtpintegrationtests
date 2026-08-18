@@ -1,0 +1,11 @@
+{
+  "d": {
+    "results": [
+      {
+        "correlationId": "corr-order-created-failed",
+        "messageId": "MSG-ORDER-CREATED-FAIL",
+        "status": "FAILED"
+      }
+    ]
+  }
+}

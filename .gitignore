@@ -1,0 +1,8 @@
+.gradle/
+build/
+node_modules/
+package-lock.json.tmp
+tasks/task-01-collector/data/
+tasks/task-01-collector/.npm/
+tasks/task-04-e2e-vertrag/reports/*.json
+tasks/task-04-e2e-vertrag/reports/contract-mismatches.md

@@ -1,0 +1,16 @@
+{
+  "d": {
+    "results": [
+      {
+        "correlationId": "corr-order-created",
+        "messageId": "MSG-ORDER-CREATED-1",
+        "status": "COMPLETED"
+      },
+      {
+        "correlationId": "corr-order-cancelled",
+        "messageId": "MSG-ORDER-CANCELLED-1",
+        "status": "COMPLETED"
+      }
+    ]
+  }
+}

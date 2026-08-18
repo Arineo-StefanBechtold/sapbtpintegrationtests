@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: CPI Test Collector API
-  version: 0.1.0
+  version: 0.2.0
   description: >
     API for a minimal collector service used in CPI integration tests.
     The collector stores multiple documents per Message ID with sequence numbers.
@@ -14,12 +14,26 @@ paths:
       responses:
         "200":
           description: Collector and storage are reachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
         "503":
           description: Storage is unavailable
 
   /collect:
     post:
       summary: Collect one incoming document
+      parameters:
+        - in: header
+          name: X-Test-Run-Id
+          schema:
+            type: string
+        - in: header
+          name: X-Message-Id
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -27,9 +41,18 @@ paths:
             schema:
               type: string
               format: binary
+          application/xml:
+            schema:
+              type: string
       responses:
         "202":
           description: Document accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectResponse'
+        "400":
+          description: Missing message id
         "413":
           description: Payload too large
         "503":
@@ -38,9 +61,21 @@ paths:
   /runs:
     post:
       summary: Start a new run and clear old data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                runId:
+                  type: string
       responses:
         "201":
           description: Run created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResponse'
 
   /runs/current:
     get:
@@ -48,6 +83,10 @@ paths:
       responses:
         "200":
           description: Current run information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResponse'
         "404":
           description: No active run
 
@@ -55,24 +94,26 @@ paths:
     post:
       summary: End a run
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
       responses:
         "200":
           description: Run ended
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runId, ended]
+                properties:
+                  runId:
+                    type: string
+                  ended:
+                    type: boolean
 
   /runs/{runId}:
     delete:
       summary: Delete a run immediately
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
       responses:
         "204":
           description: Run deleted
@@ -81,96 +122,222 @@ paths:
     get:
       summary: List messages for a run
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
       responses:
         "200":
           description: Message manifest for the run
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunManifest'
 
   /runs/{runId}/messages/{messageId}:
     get:
       summary: Get one message entry
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: messageId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/MessageId'
       responses:
         "200":
           description: Message entry metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageEntry'
+        "404":
+          description: Message entry not found
 
   /runs/{runId}/messages/{messageId}/payload:
     get:
       summary: Get raw payload
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: messageId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/MessageId'
+        - $ref: '#/components/parameters/SequenceNumber'
       responses:
         "200":
           description: Raw payload
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/xml:
+              schema:
+                type: string
+        "404":
+          description: Payload not found
 
   /runs/{runId}/messages/{messageId}/header:
     get:
       summary: Get headers
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: messageId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/MessageId'
+        - $ref: '#/components/parameters/SequenceNumber'
       responses:
         "200":
           description: JSON headers
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: number
+                    - type: boolean
+                    - type: array
+                      items:
+                        type: string
+        "404":
+          description: Header not found
 
   /runs/{runId}/messages/{messageId}/release:
     delete:
       summary: Release a message group
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: messageId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/MessageId'
       responses:
         "204":
           description: Released
+        "404":
+          description: Message group not found
 
   /runs/{runId}/residual:
     get:
       summary: Get residual items
       parameters:
-        - name: runId
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/RunId'
       responses:
         "200":
           description: Residual overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResidualState'
+
+components:
+  parameters:
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+    MessageId:
+      name: messageId
+      in: path
+      required: true
+      schema:
+        type: string
+    SequenceNumber:
+      name: sequenceNumber
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, dataDir]
+      properties:
+        status:
+          type: string
+        dataDir:
+          type: string
+    RunResponse:
+      type: object
+      required: [runId]
+      properties:
+        runId:
+          type: string
+    CollectResponse:
+      type: object
+      required: [runId, messageId, sequenceNumber, contentType, location]
+      properties:
+        runId:
+          type: string
+        messageId:
+          type: string
+        sequenceNumber:
+          type: integer
+        contentType:
+          type: string
+        location:
+          type: string
+    StoredDocument:
+      type: object
+      required: [sequenceNumber, contentType, storedAt, payloadPath, headerPath]
+      properties:
+        sequenceNumber:
+          type: integer
+        contentType:
+          type: string
+        storedAt:
+          type: string
+          format: date-time
+        payloadPath:
+          type: string
+        headerPath:
+          type: string
+    MessageEntry:
+      type: object
+      required: [runId, messageId, documents]
+      properties:
+        runId:
+          type: string
+        messageId:
+          type: string
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoredDocument'
+    RunManifest:
+      type: object
+      required: [runId, messages, releasedMessageIds, createdAt, updatedAt]
+      properties:
+        runId:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageEntry'
+        releasedMessageIds:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ResidualMessage:
+      type: object
+      required: [messageId, documentCount, sequenceNumbers]
+      properties:
+        messageId:
+          type: string
+        documentCount:
+          type: integer
+        sequenceNumbers:
+          type: array
+          items:
+            type: integer
+    ResidualState:
+      type: object
+      required: [runId, residualMessages, releasedMessageIds]
+      properties:
+        runId:
+          type: string
+        residualMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResidualMessage'
+        releasedMessageIds:
+          type: array
+          items:
+            type: string

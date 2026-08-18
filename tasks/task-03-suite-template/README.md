@@ -14,6 +14,12 @@ Die Vorlage wird pro Projekt kopiert und individualisiert. Sie enthält Testfäl
 - Einbindung des Frameworks als Abhängigkeit
 - Hinweise für die Anpassung im Kundenprojekt
 
+## Implementierter Einstieg
+- Gradle-Projekt unter `src/main/resources/testcases/`
+- Fachlich benannte Beispiele `order-created` und `order-cancelled`
+- Beispieltest unter `src/test/java` mit Framework-DSL
+- Golden-Master-Dateien pro erwartetem Dokument
+
 ## Nicht im Umfang
 - Framework-Implementierung
 - Collector-Implementierung
@@ -26,12 +32,3 @@ Die Vorlage wird pro Projekt kopiert und individualisiert. Sie enthält Testfäl
 - `implementation-notes.md`
 - `testcases/`
 - `docs/`
-
-## Leitplanken
-- Die Suite enthält nur projektspezifische fachliche Tests.
-- Keine Infrastrukturdetails in den Testfällen.
-- Testdaten sind fachlich benannt.
-- Golden Masters sind bewusst gepflegt.
-
-## Abschluss
-Der Task ist fertig, wenn ein neues Projekt aus der Vorlage starten kann und ein erster Testfall gegen den Collector/Framework-Stack funktioniert.

@@ -26,6 +26,17 @@ Dieser Task dient dazu, die Vertrags- und Integrationsbeziehungen zwischen den B
 - `fixtures/`
 - `reports/`
 
+## Ausführung
+- Collector-Tests: `cd /home/runner/work/sapbtpintegrationtests/sapbtpintegrationtests/tasks/task-01-collector && npm test`
+- Framework/Suite/E2E: `cd /home/runner/work/sapbtpintegrationtests/sapbtpintegrationtests && gradle test`
+- Die E2E-Tests starten den Collector lokal und simulieren CPI-Monitoring über WireMock.
+
+## Berichte
+Die Task schreibt zusätzlich zu den Gradle-/JUnit-Reports folgende Artefakte nach `reports/`:
+- `e2e-summary.json`
+- `contract-mismatches.md`
+- `residual-state.json`
+
 ## Leitplanken
 - Dieser Task prüft das Zusammenspiel, nicht neue Features.
 - Tests müssen reproduzierbar sein.

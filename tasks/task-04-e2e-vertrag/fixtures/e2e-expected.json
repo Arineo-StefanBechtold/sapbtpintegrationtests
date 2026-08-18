@@ -1,0 +1,10 @@
+{
+  "order-created": {
+    "messageIds": ["MSG-ORDER-CREATED-1"],
+    "documents": 1
+  },
+  "order-cancelled": {
+    "messageIds": ["MSG-ORDER-CANCELLED-1"],
+    "documents": 2
+  }
+}
