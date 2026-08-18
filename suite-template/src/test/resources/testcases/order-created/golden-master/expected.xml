@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Golden Master: expected output document for the order-created test case.
+     Update with: ./gradlew test -Dgoldenmaster.update=true -->
+<SalesOrder>
+  <OrderNumber>ORD-2024-001</OrderNumber>
+  <Status>POSTED</Status>
+  <Customer>CUST-0815</Customer>
+  <Item lineNumber="1">
+    <Material>MAT-001</Material>
+    <Quantity unit="EA">10</Quantity>
+  </Item>
+</SalesOrder>

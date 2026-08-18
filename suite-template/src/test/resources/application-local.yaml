@@ -1,0 +1,16 @@
+# Example configuration for local test execution.
+# Copy this file to application-local.yaml and fill in your values.
+# DO NOT commit real credentials or tenant-specific data.
+
+cpi:
+  tenant:
+    # Replace with your CPI tenant base URL (no trailing slash)
+    url: https://your-tenant.it-cpi001.cfapps.eu10.hana.ondemand.com
+    # OAuth2 client credentials — use environment variables or a secret manager
+    clientId: ${CPI_CLIENT_ID:your-client-id}
+    clientSecret: ${CPI_CLIENT_SECRET:your-client-secret}
+    tokenUrl: ${CPI_TOKEN_URL:https://your-tenant.authentication.eu10.hana.ondemand.com/oauth/token}
+
+collector:
+  # URL of the running Collector service
+  url: ${COLLECTOR_URL:http://localhost:3000}

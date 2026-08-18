@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Golden Master: expected output for cancelled order — covers a two-step scenario.
+     Update with: ./gradlew test -Dgoldenmaster.update=true -->
+<SalesOrderCancellation>
+  <OrderNumber>ORD-2024-002</OrderNumber>
+  <Status>CANCELLED</Status>
+  <Customer>CUST-0816</Customer>
+  <CancellationReason>CUSTOMER_REQUEST</CancellationReason>
+</SalesOrderCancellation>

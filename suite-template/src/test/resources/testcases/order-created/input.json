@@ -1,0 +1,16 @@
+{
+  "orderNumber": "ORD-2024-001",
+  "orderDate": "2024-01-15",
+  "customer": {
+    "id": "CUST-0815",
+    "name": "Example Customer GmbH"
+  },
+  "items": [
+    {
+      "lineNumber": 1,
+      "materialNumber": "MAT-001",
+      "quantity": 10,
+      "unit": "EA"
+    }
+  ]
+}
