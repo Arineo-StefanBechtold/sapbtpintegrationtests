@@ -56,3 +56,17 @@ test('residual state reflects released and unreleased message ids', async () => 
     assert.deepEqual(residual.json().residualMessages.map((entry) => entry.messageId), ['MSG-B']);
   });
 });
+
+test('rejects path traversal in identifiers', async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/collect',
+      headers: { 'x-test-run-id': '../run', 'x-message-id': 'MSG-1', 'content-type': 'application/xml' },
+      payload: '<invalid />',
+    });
+
+    assert.equal(response.statusCode, 400);
+    assert.match(response.json().message, /Invalid runId/);
+  });
+});

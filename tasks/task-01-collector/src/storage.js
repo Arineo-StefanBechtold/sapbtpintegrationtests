@@ -24,11 +24,12 @@ class FileCollectorStorage {
   }
 
   async createRun(runId = randomUUID()) {
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
     await this.init();
-    const manifest = this.#emptyManifest(runId);
-    await this.#writeManifest(runId, manifest);
-    await this.#writeCurrentRun(runId);
-    return { runId };
+    const manifest = this.#emptyManifest(normalizedRunId);
+    await this.#writeManifest(normalizedRunId, manifest);
+    await this.#writeCurrentRun(normalizedRunId);
+    return { runId: normalizedRunId };
   }
 
   async getCurrentRun() {
@@ -44,17 +45,19 @@ class FileCollectorStorage {
   }
 
   async endRun(runId) {
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
     const currentRun = await this.getCurrentRun();
-    if (currentRun && currentRun.runId === runId) {
+    if (currentRun && currentRun.runId === normalizedRunId) {
       await fs.rm(this.currentRunFile, { force: true });
     }
-    return { runId, ended: true };
+    return { runId: normalizedRunId, ended: true };
   }
 
   async deleteRun(runId) {
-    await fs.rm(this.#runDir(runId), { recursive: true, force: true });
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    await fs.rm(this.#runDir(normalizedRunId), { recursive: true, force: true });
     const currentRun = await this.getCurrentRun();
-    if (currentRun && currentRun.runId === runId) {
+    if (currentRun && currentRun.runId === normalizedRunId) {
       await fs.rm(this.currentRunFile, { force: true });
     }
   }
@@ -66,14 +69,15 @@ class FileCollectorStorage {
       throw error;
     }
 
-    const effectiveRunId = runId || (await this.getCurrentRun())?.runId || DEFAULT_RUN;
-    const lockKey = `${effectiveRunId}:${messageId}`;
+    const normalizedMessageId = this.#safeSegment(messageId, 'messageId');
+    const effectiveRunId = this.#safeSegment(runId || (await this.getCurrentRun())?.runId || DEFAULT_RUN, 'runId');
+    const lockKey = `${effectiveRunId}:${normalizedMessageId}`;
     return this.#withLock(lockKey, async () => {
       await this.init();
       const manifest = await this.#readManifest(effectiveRunId);
-      const existing = manifest.messages[messageId] || [];
+      const existing = manifest.messages[normalizedMessageId] || [];
       const sequenceNumber = existing.length + 1;
-      const messageDir = this.#messageDir(effectiveRunId, messageId);
+      const messageDir = this.#messageDir(effectiveRunId, normalizedMessageId);
       await fs.mkdir(messageDir, { recursive: true });
       const payloadFile = path.join(messageDir, `${sequenceNumber}.payload`);
       const headerFile = path.join(messageDir, `${sequenceNumber}.headers.json`);
@@ -87,23 +91,24 @@ class FileCollectorStorage {
         payloadPath: path.relative(this.#runDir(effectiveRunId), payloadFile).replace(/\\/g, '/'),
         headerPath: path.relative(this.#runDir(effectiveRunId), headerFile).replace(/\\/g, '/'),
       };
-      manifest.messages[messageId] = existing.concat(entry);
+      manifest.messages[normalizedMessageId] = existing.concat(entry);
       manifest.updatedAt = new Date().toISOString();
       await this.#writeManifest(effectiveRunId, manifest);
       return {
         runId: effectiveRunId,
-        messageId,
+        messageId: normalizedMessageId,
         sequenceNumber,
         contentType,
-        location: `/runs/${encodeURIComponent(effectiveRunId)}/messages/${encodeURIComponent(messageId)}`,
+        location: `/runs/${encodeURIComponent(effectiveRunId)}/messages/${encodeURIComponent(normalizedMessageId)}`,
       };
     });
   }
 
   async getRunMessages(runId) {
-    const manifest = await this.#readManifest(runId);
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    const manifest = await this.#readManifest(normalizedRunId);
     return {
-      runId,
+      runId: normalizedRunId,
       messages: Object.entries(manifest.messages)
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([messageId, documents]) => ({ messageId, documents })),
@@ -114,45 +119,58 @@ class FileCollectorStorage {
   }
 
   async getMessage(runId, messageId) {
-    const manifest = await this.#readManifest(runId);
-    const documents = manifest.messages[messageId];
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    const normalizedMessageId = this.#safeSegment(messageId, 'messageId');
+    const manifest = await this.#readManifest(normalizedRunId);
+    const documents = manifest.messages[normalizedMessageId];
     if (!documents) {
       return null;
     }
-    return { runId, messageId, documents };
+    return { runId: normalizedRunId, messageId: normalizedMessageId, documents };
   }
 
   async getPayload(runId, messageId, sequenceNumber) {
-    const document = await this.#getDocument(runId, messageId, sequenceNumber);
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    const document = await this.#getDocument(normalizedRunId, messageId, sequenceNumber);
+    if (!document) {
+      return null;
+    }
     return {
       contentType: document.contentType,
-      payload: await fs.readFile(path.join(this.#runDir(runId), document.payloadPath)),
+      payload: await fs.readFile(path.join(this.#runDir(normalizedRunId), document.payloadPath)),
     };
   }
 
   async getHeader(runId, messageId, sequenceNumber) {
-    const document = await this.#getDocument(runId, messageId, sequenceNumber);
-    const content = await fs.readFile(path.join(this.#runDir(runId), document.headerPath), 'utf8');
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    const document = await this.#getDocument(normalizedRunId, messageId, sequenceNumber);
+    if (!document) {
+      return null;
+    }
+    const content = await fs.readFile(path.join(this.#runDir(normalizedRunId), document.headerPath), 'utf8');
     return JSON.parse(content);
   }
 
   async releaseMessage(runId, messageId) {
-    const manifest = await this.#readManifest(runId);
-    if (!manifest.messages[messageId]) {
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    const normalizedMessageId = this.#safeSegment(messageId, 'messageId');
+    const manifest = await this.#readManifest(normalizedRunId);
+    if (!manifest.messages[normalizedMessageId]) {
       return false;
     }
-    delete manifest.messages[messageId];
-    manifest.releasedMessageIds = Array.from(new Set([...manifest.releasedMessageIds, messageId]));
+    delete manifest.messages[normalizedMessageId];
+    manifest.releasedMessageIds = Array.from(new Set([...manifest.releasedMessageIds, normalizedMessageId]));
     manifest.updatedAt = new Date().toISOString();
-    await fs.rm(this.#messageDir(runId, messageId), { recursive: true, force: true });
-    await this.#writeManifest(runId, manifest);
+    await fs.rm(this.#messageDir(normalizedRunId, normalizedMessageId), { recursive: true, force: true });
+    await this.#writeManifest(normalizedRunId, manifest);
     return true;
   }
 
   async getResidual(runId) {
-    const manifest = await this.#readManifest(runId);
+    const normalizedRunId = this.#safeSegment(runId, 'runId');
+    const manifest = await this.#readManifest(normalizedRunId);
     return {
-      runId,
+      runId: normalizedRunId,
       residualMessages: Object.entries(manifest.messages)
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([messageId, documents]) => ({
@@ -177,11 +195,11 @@ class FileCollectorStorage {
   }
 
   #runDir(runId) {
-    return path.join(this.dataDir, runId);
+    return path.join(this.dataDir, this.#safeSegment(runId, 'runId'));
   }
 
   #messageDir(runId, messageId) {
-    return path.join(this.#runDir(runId), encodeURIComponent(messageId));
+    return path.join(this.#runDir(runId), this.#safeSegment(messageId, 'messageId'));
   }
 
   async #readManifest(runId) {
@@ -223,6 +241,16 @@ class FileCollectorStorage {
       releasedMessageIds: [],
       messages: {},
     };
+  }
+
+  #safeSegment(value, fieldName) {
+    const normalized = String(value || '').trim();
+    if (!normalized || !/^[A-Za-z0-9._-]+$/.test(normalized)) {
+      const error = new Error(`Invalid ${fieldName}`);
+      error.statusCode = 400;
+      throw error;
+    }
+    return normalized;
   }
 
   async #withLock(key, task) {
