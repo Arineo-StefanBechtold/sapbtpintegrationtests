@@ -1,0 +1,5 @@
+{
+  "status": "CANCELLED",
+  "messageType": "SalesOrderCancelled",
+  "processingSteps": 2
+}

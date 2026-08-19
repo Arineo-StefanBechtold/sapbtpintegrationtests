@@ -1,0 +1,5 @@
+{
+  "status": "POSTED",
+  "messageType": "SalesOrderCreated",
+  "processingSteps": 1
+}
