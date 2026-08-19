@@ -7,7 +7,7 @@ async function collectRoutes(fastify) {
     done(null, body);
   });
 
-  fastify.post('/collect', async (request, reply) => {
+  const collectHandler = async (request, reply) => {
     const messageId = request.headers['x-message-id'];
     if (!messageId) {
       return reply.code(400).send({ error: 'Missing X-Message-Id header' });
@@ -16,8 +16,11 @@ async function collectRoutes(fastify) {
     const testRunId = request.headers['x-test-run-id'] || 'default';
     const payload = request.body || Buffer.alloc(0);
 
-    // Collect all headers (exclude internal ones if needed, but spec says store all)
-    const headers = { ...request.headers };
+    // Derive the sub-path after /collect (e.g. /collect/inbound/Product -> /inbound/Product)
+    const requestPath = request.url.replace(/^\/collect/, '').split('?')[0] || '/';
+
+    // Collect all headers and add RequestPath
+    const headers = { ...request.headers, 'RequestPath': requestPath };
 
     let result;
     try {
@@ -33,7 +36,11 @@ async function collectRoutes(fastify) {
       sequenceNumber: result.seqNo,
       storedAt: result.storedAt,
     });
-  });
+  };
+
+  // Match both /collect and /collect/<any sub-path>
+  fastify.post('/collect', collectHandler);
+  fastify.post('/collect/*', collectHandler);
 }
 
 module.exports = collectRoutes;

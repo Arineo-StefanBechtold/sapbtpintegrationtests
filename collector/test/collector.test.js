@@ -200,3 +200,43 @@ test('Missing X-Test-Run-Id uses "default" run', async () => {
   const body = JSON.parse(res.body);
   assert.equal(body.testRunId, 'default');
 });
+
+test('POST /collect stores RequestPath "/" for plain /collect', async () => {
+  const res = await app.inject({
+    method: 'POST',
+    url: '/collect',
+    headers: {
+      'content-type': 'text/plain',
+      'x-message-id': 'msg-rpath-root',
+      'x-test-run-id': 'run-rpath',
+    },
+    payload: Buffer.from('root path'),
+  });
+  assert.equal(res.statusCode, 202);
+  const hdrs = await app.inject({
+    method: 'GET',
+    url: `/runs/run-rpath/messages/msg-rpath-root/header`,
+  });
+  const h = JSON.parse(hdrs.body);
+  assert.equal(h['RequestPath'], '/');
+});
+
+test('POST /collect/* stores sub-path in RequestPath header', async () => {
+  const res = await app.inject({
+    method: 'POST',
+    url: '/collect/inbound/Product',
+    headers: {
+      'content-type': 'application/xml',
+      'x-message-id': 'msg-rpath-sub',
+      'x-test-run-id': 'run-rpath-sub',
+    },
+    payload: Buffer.from('<product/>'),
+  });
+  assert.equal(res.statusCode, 202);
+  const hdrs = await app.inject({
+    method: 'GET',
+    url: `/runs/run-rpath-sub/messages/msg-rpath-sub/header`,
+  });
+  const h = JSON.parse(hdrs.body);
+  assert.equal(h['RequestPath'], '/inbound/Product');
+});
