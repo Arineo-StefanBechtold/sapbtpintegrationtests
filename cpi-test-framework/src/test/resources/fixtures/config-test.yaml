@@ -1,0 +1,8 @@
+cpi:
+  test:
+    monitoringBaseUrl: "https://monitoring.example.test"
+    monitoringUser: "fixture-user"
+    monitoringPassword: "fixture-password"
+    collectorBaseUrl: "http://collector.example.test"
+    pollingIntervalMs: 1000
+    pollingTimeoutMs: 15000
