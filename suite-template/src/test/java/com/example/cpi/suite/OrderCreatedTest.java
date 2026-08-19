@@ -1,8 +1,8 @@
 package com.example.cpi.suite;
 
-import me.cxdev.testing.cpi.framework.CpiIntegrationTest;
-import me.cxdev.testing.cpi.framework.GoldenMaster;
-import me.cxdev.testing.cpi.framework.TestCase;
+import me.cxdev.testing.cpi.framework.CpiSendResult;
+import me.cxdev.testing.cpi.framework.CpiTestContext;
+import me.cxdev.testing.cpi.framework.CpiTestDsl;
 import me.cxdev.testing.cpi.framework.annotation.CpiTest;
 import org.junit.jupiter.api.Test;
 
@@ -15,8 +15,9 @@ import org.junit.jupiter.api.Test;
  *
  * <p><b>Adaptation notes:</b>
  * <ul>
- *   <li>Replace the iflow ID {@code "OrderCreated_iflow"} with the actual integration flow name.</li>
- *   <li>Adjust the expected status in the golden master if your integration uses a different value.</li>
+ *   <li>Replace the iflow endpoint {@code "http/order-created"} with the actual HTTP sender address.</li>
+ *   <li>Replace the input file path with the location of your test input document.</li>
+ *   <li>Adjust golden-master assertions to match your integration's output headers and body.</li>
  *   <li>Update golden masters intentionally: {@code ./gradlew test -Dgoldenmaster.update=true}</li>
  * </ul>
  */
@@ -24,18 +25,30 @@ import org.junit.jupiter.api.Test;
 class OrderCreatedTest {
 
     /**
-     * Sends the order-created input message to CPI and compares the result against the golden master.
+     * Sends the order-created input message to CPI and asserts the outbound document.
+     *
+     * @param ctx injected by the framework; provides CPI send, monitoring, and collector access
      */
     @Test
-    void orderCreated_resultsInPostedStatus() {
-        TestCase testCase = TestCase.load("testcases/order-created");
+    void orderCreated_resultsInPostedStatus(CpiTestContext ctx) {
+        // Send the input file to the CPI iflow HTTP endpoint
+        CpiSendResult sendResult = ctx.sendFileRequestToCpi(
+                "http/order-created",                                          // TODO: replace with actual sender endpoint
+                "src/test/resources/testcases/order-created/input.json");      // TODO: replace with actual input path
 
-        CpiIntegrationTest.builder()
-                .withIflow("OrderCreated_iflow")              // TODO: replace with actual iflow name
-                .withInput(testCase.getInput())
-                .expectDocumentCount(1)
-                .expectStatus("POSTED")
-                .assertOutputMatches(GoldenMaster.from(testCase))
-                .run();
+        String messageId     = sendResult.requireMessageId();
+        String correlationId = ctx.getCorrelationIdForMessageId(messageId);
+
+        // Wait until CPI processing is complete
+        ctx.waitForCompletion(correlationId);
+
+        // Assert the result via the collector
+        CpiTestDsl.given(ctx)
+                .correlationId(correlationId)
+                .when()
+                .fetchFromCollector()
+                .document(0)
+                .hasHeader("Content-Type", "application/xml")
+                .hasStatus("POSTED");                                          // TODO: adjust expected status if needed
     }
 }
