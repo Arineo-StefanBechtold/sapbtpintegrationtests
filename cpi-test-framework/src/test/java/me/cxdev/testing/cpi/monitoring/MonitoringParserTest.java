@@ -2,6 +2,7 @@ package me.cxdev.testing.cpi.monitoring;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,8 @@ class MonitoringParserTest {
             MonitoringResponse response = new MonitoringParser().parse(body);
 
             assertEquals(java.util.List.of("msg-001", "msg-002"), response.messageIds());
+            assertEquals("corr-001", response.correlationIdForMessageId("msg-001"));
+            assertTrue(response.allEntriesTerminal());
         }
     }
 }

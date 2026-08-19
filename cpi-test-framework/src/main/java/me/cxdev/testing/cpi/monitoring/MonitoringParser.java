@@ -18,20 +18,34 @@ public class MonitoringParser {
             if (results == null) {
                 return new MonitoringResponse(List.of());
             }
-            List<String> messageIds = new ArrayList<>();
+            List<MonitoringEntry> entries = new ArrayList<>();
             for (int i = 0; i < results.length(); i++) {
                 JSONObject item = results.optJSONObject(i);
                 if (item == null) {
                     continue;
                 }
-                String messageGuid = item.optString("MessageGuid", "").trim();
+                String messageGuid = firstNonBlank(
+                        item.optString("MessageGuid", "").trim(),
+                        item.optString("MessageId", "").trim());
                 if (!messageGuid.isEmpty()) {
-                    messageIds.add(messageGuid);
+                    entries.add(new MonitoringEntry(
+                            messageGuid,
+                            firstNonBlank(item.optString("CorrelationId", "").trim(), item.optString("CorrelationID", "").trim()),
+                            item.optString("Status", "").trim()));
                 }
             }
-            return new MonitoringResponse(messageIds);
+            return new MonitoringResponse(entries);
         } catch (Exception e) {
             return new MonitoringResponse(List.of());
         }
+    }
+
+    private String firstNonBlank(String... candidates) {
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.isBlank()) {
+                return candidate;
+            }
+        }
+        return "";
     }
 }

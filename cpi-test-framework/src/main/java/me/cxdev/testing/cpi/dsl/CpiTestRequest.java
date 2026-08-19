@@ -14,6 +14,11 @@ public final class CpiTestRequest {
         return this;
     }
 
+    public CpiTestRequest messageId(String messageId) {
+        stage.messageId(messageId);
+        return this;
+    }
+
     public CpiTestRequest expectDocuments(int expectedDocuments) {
         stage.expectDocuments(expectedDocuments);
         return this;

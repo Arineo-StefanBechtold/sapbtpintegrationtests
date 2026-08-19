@@ -104,6 +104,9 @@ public class ConfigLoader {
         override(values, "monitoringBaseUrl", environment.get(ENV_PREFIX + "MONITORING_URL"));
         override(values, "monitoringUser", environment.get(ENV_PREFIX + "MONITORING_USER"));
         override(values, "monitoringPassword", environment.get(ENV_PREFIX + "MONITORING_PASSWORD"));
+        override(values, "inboundBaseUrl", environment.get(ENV_PREFIX + "INBOUND_URL"));
+        override(values, "inboundUser", environment.get(ENV_PREFIX + "INBOUND_USER"));
+        override(values, "inboundPassword", environment.get(ENV_PREFIX + "INBOUND_PASSWORD"));
         override(values, "collectorBaseUrl", environment.get(ENV_PREFIX + "COLLECTOR_URL"));
         override(values, "pollingIntervalMs", parseInteger(environment.get(ENV_PREFIX + "POLLING_INTERVAL_MS")));
         override(values, "pollingTimeoutMs", parseInteger(environment.get(ENV_PREFIX + "POLLING_TIMEOUT_MS")));
@@ -127,6 +130,9 @@ public class ConfigLoader {
                 stringValue(values.get("monitoringBaseUrl")),
                 stringValue(values.get("monitoringUser")),
                 stringValue(values.get("monitoringPassword")),
+                stringValue(values.get("inboundBaseUrl")),
+                stringValue(values.get("inboundUser")),
+                stringValue(values.get("inboundPassword")),
                 stringValue(values.get("collectorBaseUrl")),
                 integerValue(values.get("pollingIntervalMs")),
                 integerValue(values.get("pollingTimeoutMs")));

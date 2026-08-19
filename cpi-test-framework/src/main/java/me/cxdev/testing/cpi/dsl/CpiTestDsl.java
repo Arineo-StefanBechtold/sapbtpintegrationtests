@@ -47,6 +47,11 @@ public final class CpiTestDsl {
             return this;
         }
 
+        public RequestStage messageId(String messageId) {
+            this.correlationId = context.getCorrelationIdForMessageId(messageId);
+            return this;
+        }
+
         public RequestStage expectDocuments(int expectedDocuments) {
             this.expectedDocuments = expectedDocuments;
             return this;
@@ -74,7 +79,10 @@ public final class CpiTestDsl {
         public CpiTestResponse fetchFromCollector() {
             String testCaseName = detectTestCaseName();
             context.getLedger().register(correlationId, testCaseName);
-            List<String> messageIds = context.getMonitoringClient().fetchMessageIds(correlationId, context.getRunId());
+            List<String> messageIds = context.waitForCompletion(correlationId).stream()
+                    .map(me.cxdev.testing.cpi.monitoring.MonitoringEntry::messageId)
+                    .distinct()
+                    .toList();
             context.getLedger().recordMessageIds(correlationId, messageIds);
             List<CollectedDocument> documents = context.getCollectorClient().fetchDocuments(messageIds);
             context.recordDocuments(documents);

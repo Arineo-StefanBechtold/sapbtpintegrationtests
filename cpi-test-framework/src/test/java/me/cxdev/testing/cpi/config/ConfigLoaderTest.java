@@ -38,6 +38,9 @@ class ConfigLoaderTest {
                     monitoringBaseUrl: "https://yaml.example.test"
                     monitoringUser: "yaml-user"
                     monitoringPassword: "yaml-password"
+                    inboundBaseUrl: "https://yaml-inbound.example.test"
+                    inboundUser: "yaml-inbound-user"
+                    inboundPassword: "yaml-inbound-password"
                     collectorBaseUrl: "http://yaml-collector"
                     pollingIntervalMs: 100
                     pollingTimeoutMs: 200
@@ -45,6 +48,7 @@ class ConfigLoaderTest {
 
         Map<String, String> env = Map.of(
                 "CPI_TEST_MONITORING_URL", "https://env.example.test",
+                "CPI_TEST_INBOUND_URL", "https://env-inbound.example.test",
                 "CPI_TEST_COLLECTOR_URL", "http://env-collector",
                 "CPI_TEST_POLLING_TIMEOUT_MS", "999");
         ConfigLoader loader = new ConfigLoader(configDir, env, new Properties());
@@ -52,9 +56,11 @@ class ConfigLoaderTest {
         CpiTestConfig config = loader.load(CpiTestProfile.LOCAL);
 
         assertEquals("https://env.example.test", config.getMonitoringBaseUrl());
+        assertEquals("https://env-inbound.example.test", config.getInboundBaseUrl());
         assertEquals("http://env-collector", config.getCollectorBaseUrl());
         assertEquals(999, config.getPollingTimeoutMs());
         assertEquals("yaml-user", config.getMonitoringUser());
+        assertEquals("yaml-inbound-user", config.getInboundUser());
     }
 
     @Test
@@ -85,5 +91,26 @@ class ConfigLoaderTest {
 
         assertEquals("https://staging.example.test", config.getMonitoringBaseUrl());
         assertEquals("staging-user", config.getMonitoringUser());
+    }
+
+    @Test
+    void inboundSettingsFallBackToMonitoringSettings() throws IOException {
+        Path configDir = Files.createDirectories(Path.of("build/test-config/config-inbound-fallback"));
+        Files.writeString(configDir.resolve("cpi-test-config-local.yaml"), """
+                cpi:
+                  test:
+                    monitoringBaseUrl: "https://monitoring.example.test"
+                    monitoringUser: "monitoring-user"
+                    monitoringPassword: "monitoring-password"
+                    collectorBaseUrl: "http://collector"
+                """);
+
+        ConfigLoader loader = new ConfigLoader(configDir, Map.of(), new Properties());
+
+        CpiTestConfig config = loader.load(CpiTestProfile.LOCAL);
+
+        assertEquals("https://monitoring.example.test", config.getInboundBaseUrl());
+        assertEquals("monitoring-user", config.getInboundUser());
+        assertEquals("monitoring-password", config.getInboundPassword());
     }
 }

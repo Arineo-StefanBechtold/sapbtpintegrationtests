@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import me.cxdev.testing.cpi.collector.CollectorClient;
+import me.cxdev.testing.cpi.communication.CpiCommunicationClient;
 import me.cxdev.testing.cpi.config.ConfigLoader;
 import me.cxdev.testing.cpi.config.CpiTestConfig;
 import me.cxdev.testing.cpi.dsl.CpiTestDsl;
@@ -39,7 +40,9 @@ public class CpiTestExtension implements BeforeAllCallback, AfterAllCallback, Pa
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
         Class<?> parameterType = parameterContext.getParameter().getType();
-        return parameterType == CpiTestContext.class || parameterType == CpiTestConfig.class;
+        return parameterType == CpiTestContext.class
+                || parameterType == CpiTestConfig.class
+                || parameterType == CpiCommunicationClient.class;
     }
 
     @Override
@@ -57,17 +60,22 @@ public class CpiTestExtension implements BeforeAllCallback, AfterAllCallback, Pa
         if (parameterType == CpiTestConfig.class) {
             return resource.context().getConfig();
         }
+        if (parameterType == CpiCommunicationClient.class) {
+            return resource.context().getCpiCommunicationClient();
+        }
         throw new ParameterResolutionException("Unsupported parameter type: " + parameterType.getName());
     }
 
     private ContextResource createResource() {
         CpiTestConfig config = new ConfigLoader().load();
         OkHttpTransport transport = new OkHttpTransport();
+        CpiMonitoringClient monitoringClient = new CpiMonitoringClient(transport, config);
         CpiTestContext context = new CpiTestContext(
                 RunIdGenerator.generate(),
                 config,
                 new Ledger(),
-                new CpiMonitoringClient(transport, config),
+                monitoringClient,
+                new CpiCommunicationClient(transport, config, monitoringClient),
                 new CollectorClient(transport, config.getCollectorBaseUrl()),
                 new ResidualChecker());
         return new ContextResource(context);

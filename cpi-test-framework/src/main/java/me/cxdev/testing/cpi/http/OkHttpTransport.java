@@ -4,15 +4,12 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class OkHttpTransport implements HttpTransport {
-    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
-
     private final OkHttpClient client;
 
     public OkHttpTransport() {
@@ -36,9 +33,14 @@ public class OkHttpTransport implements HttpTransport {
 
     @Override
     public HttpResponse post(String url, String body, Map<String, String> headers) {
+        return post(url, body, headers, "application/json; charset=utf-8");
+    }
+
+    @Override
+    public HttpResponse post(String url, String body, Map<String, String> headers, String contentType) {
         Request.Builder builder = new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(body == null ? "" : body, JSON_MEDIA_TYPE));
+                .post(RequestBody.create(body == null ? "" : body, okhttp3.MediaType.parse(contentType)));
         headers.forEach(builder::addHeader);
         try (Response response = client.newCall(builder.build()).execute()) {
             return toResponse(response);

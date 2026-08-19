@@ -37,12 +37,8 @@ public class CpiMonitoringClient {
     public List<String> fetchMessageIds(String correlationId, String runId) {
         long deadline = System.currentTimeMillis() + config.getPollingTimeoutMs();
         while (true) {
-            HttpResponse response = transport.get(buildUrl(correlationId), buildHeaders());
-            if (response.statusCode() != 200) {
-                throw new IllegalStateException(
-                        "Monitoring API returned status " + response.statusCode() + " for correlationId=" + correlationId + ", runId=" + runId);
-            }
-            List<String> messageIds = parser.parse(response.body()).messageIds();
+            MonitoringResponse parsedResponse = loadByCorrelationId(correlationId, runId);
+            List<String> messageIds = parsedResponse.messageIds();
             if (!messageIds.isEmpty()) {
                 return messageIds;
             }
@@ -53,11 +49,72 @@ public class CpiMonitoringClient {
         }
     }
 
-    private String buildUrl(String correlationId) {
+    public String getCorrelationIdForMessageId(String messageId, String runId) {
+        Objects.requireNonNull(messageId, "messageId");
+        long deadline = System.currentTimeMillis() + config.getPollingTimeoutMs();
+        while (true) {
+            MonitoringResponse response = loadByMessageId(messageId, runId);
+            String correlationId = response.correlationIdForMessageId(messageId);
+            if (correlationId != null && !correlationId.isBlank()) {
+                return correlationId;
+            }
+            if (System.currentTimeMillis() >= deadline) {
+                throw new IllegalStateException("No correlationId found for messageId=" + messageId + ", runId=" + runId);
+            }
+            sleepQuietly("messageId=" + messageId, runId);
+        }
+    }
+
+    public List<MonitoringEntry> awaitCompletion(String correlationId, String runId) {
+        Objects.requireNonNull(correlationId, "correlationId");
+        long deadline = System.currentTimeMillis() + config.getPollingTimeoutMs();
+        MonitoringResponse latestResponse = new MonitoringResponse(List.of());
+        while (true) {
+            latestResponse = loadByCorrelationId(correlationId, runId);
+            if (latestResponse.allEntriesTerminal()) {
+                return latestResponse.entries();
+            }
+            if (System.currentTimeMillis() >= deadline) {
+                throw new IllegalStateException("Monitoring polling timed out before terminal status for correlationId="
+                        + correlationId + ", runId=" + runId + ", statuses=" + latestResponse.entries().stream()
+                        .map(entry -> entry.messageId() + ":" + entry.status())
+                        .toList());
+            }
+            sleepQuietly(correlationId, runId);
+        }
+    }
+
+    private MonitoringResponse loadByCorrelationId(String correlationId, String runId) {
+        HttpResponse response = transport.get(buildCorrelationUrl(correlationId), buildHeaders());
+        return parseResponse(response, "correlationId=" + correlationId, runId);
+    }
+
+    private MonitoringResponse loadByMessageId(String messageId, String runId) {
+        HttpResponse response = transport.get(buildMessageIdUrl(messageId), buildHeaders());
+        return parseResponse(response, "messageId=" + messageId, runId);
+    }
+
+    private MonitoringResponse parseResponse(HttpResponse response, String identifier, String runId) {
+        if (response.statusCode() != 200) {
+            throw new IllegalStateException(
+                    "Monitoring API returned status " + response.statusCode() + " for " + identifier + ", runId=" + runId);
+        }
+        return parser.parse(response.body());
+    }
+
+    private String buildCorrelationUrl(String correlationId) {
         String baseUrl = config.getMonitoringBaseUrl().endsWith("/")
                 ? config.getMonitoringBaseUrl().substring(0, config.getMonitoringBaseUrl().length() - 1)
                 : config.getMonitoringBaseUrl();
         String filter = URLEncoder.encode("CorrelationId eq '" + correlationId + "'", StandardCharsets.UTF_8);
+        return baseUrl + "/api/v1/MessageProcessingLogs?$filter=" + filter + "&$format=json";
+    }
+
+    private String buildMessageIdUrl(String messageId) {
+        String baseUrl = config.getMonitoringBaseUrl().endsWith("/")
+                ? config.getMonitoringBaseUrl().substring(0, config.getMonitoringBaseUrl().length() - 1)
+                : config.getMonitoringBaseUrl();
+        String filter = URLEncoder.encode("MessageGuid eq '" + messageId + "'", StandardCharsets.UTF_8);
         return baseUrl + "/api/v1/MessageProcessingLogs?$filter=" + filter + "&$format=json";
     }
 
