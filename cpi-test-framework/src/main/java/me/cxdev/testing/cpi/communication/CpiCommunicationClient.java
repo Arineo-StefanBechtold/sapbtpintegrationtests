@@ -158,7 +158,8 @@ public class CpiCommunicationClient {
         try {
             JSONObject jsonObject = new JSONObject(body);
             Map<String, String> values = new LinkedHashMap<>();
-            for (String key : jsonObject.keySet()) {
+            for (java.util.Iterator<String> iterator = jsonObject.keys(); iterator.hasNext(); ) {
+                String key = iterator.next();
                 values.put(key, String.valueOf(jsonObject.opt(key)));
             }
             return values;

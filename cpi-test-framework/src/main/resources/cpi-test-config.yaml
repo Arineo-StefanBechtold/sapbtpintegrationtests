@@ -3,6 +3,9 @@ cpi:
     monitoringBaseUrl: ""
     monitoringUser: ""
     monitoringPassword: ""
+    inboundBaseUrl: ""
+    inboundUser: ""
+    inboundPassword: ""
     collectorBaseUrl: "http://localhost:3000"
     pollingIntervalMs: 5000
     pollingTimeoutMs: 60000

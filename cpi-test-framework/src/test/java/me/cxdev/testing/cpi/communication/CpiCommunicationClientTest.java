@@ -13,6 +13,7 @@ import me.cxdev.testing.cpi.monitoring.CpiMonitoringClient;
 import me.cxdev.testing.cpi.monitoring.MonitoringEntry;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.Test;
 
 class CpiCommunicationClientTest {
@@ -43,12 +44,13 @@ class CpiCommunicationClientTest {
                     new CpiMonitoringClient(new OkHttpTransport(), config));
 
             CpiSendResult response = client.sendRawRequest("/iflow/orders", "<order/>");
+            RecordedRequest request = inboundServer.takeRequest();
 
             assertTrue(response.isSuccessful());
             assertEquals("msg-001", response.requireMessageId());
             assertEquals("corr-001", response.requireCorrelationId());
-            assertEquals("/iflow/orders", inboundServer.takeRequest().getPath());
-            assertEquals("application/xml; charset=utf-8", inboundServer.takeRequest().getHeader("Content-Type"));
+            assertEquals("/iflow/orders", request.getPath());
+            assertEquals("application/xml; charset=utf-8", request.getHeader("Content-Type"));
         }
     }
 
@@ -81,10 +83,11 @@ class CpiCommunicationClientTest {
                     new CpiMonitoringClient(new OkHttpTransport(), config));
 
             CpiSendResult response = client.sendFileRequest("iflow/invoices", payloadFile.toString());
+            RecordedRequest request = inboundServer.takeRequest();
 
             assertEquals("msg-002", response.requireMessageId());
-            assertEquals("/iflow/invoices", inboundServer.takeRequest().getPath());
-            assertEquals("<invoice/>", inboundServer.takeRequest().getBody().readUtf8());
+            assertEquals("/iflow/invoices", request.getPath());
+            assertEquals("<invoice/>", request.getBody().readUtf8());
         }
     }
 
