@@ -45,6 +45,49 @@ See [`api-contract/openapi.yaml`](./api-contract/openapi.yaml) for the full cont
 | `X-Message-Id`    | Yes      | Message identifier                   |
 | `X-Test-Run-Id`   | No       | Run identifier (default: `default`)  |
 
+## Cloud Foundry Deployment
+
+### Prerequisites
+
+- [CF CLI](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) installed
+- Logged in to your SAP BTP CF environment:
+
+```bash
+cf login -a <API_ENDPOINT> -u <USER> -o <ORG> -s <SPACE>
+```
+
+### Push the application
+
+From the `collector` directory, run:
+
+```bash
+cd collector
+cf push
+```
+
+CF will pick up `manifest.yaml` automatically and deploy the app using the Node.js buildpack.
+
+### Override environment variables
+
+You can override any environment variable after deployment:
+
+```bash
+cf set-env cpi-test-collector COLLECTOR_TTL_HOURS 4
+cf set-env cpi-test-collector COLLECTOR_DATA_DIR /tmp/data
+cf restage cpi-test-collector
+```
+
+### Check the app
+
+```bash
+cf app cpi-test-collector          # status, URLs, memory
+cf logs cpi-test-collector --recent  # recent log output
+```
+
+The app will be reachable at the route CF assigns, e.g. `https://cpi-test-collector.<cf-domain>/health`.
+
+---
+
 ## Tests
 
 ```bash
