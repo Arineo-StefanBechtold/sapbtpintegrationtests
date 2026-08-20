@@ -1,6 +1,6 @@
-# Suite Template — CPI Integration Tests
+# SAP BTP Integration Test Suite Template
 
-This is a **project-specific test suite template** built on the CPI Test Framework.
+This is a **project-specific test suite template** built on the SAP BTP Integration Testing Framework.
 Copy this folder into your project, rename it, and adapt it to your integration scenario.
 
 ---
@@ -11,7 +11,7 @@ Copy this folder into your project, rename it, and adapt it to your integration 
 
 | Tool | Version |
 |------|---------|
-| Java | 21+ |
+| Java | 25+ |
 | Gradle | 9.7 (wrapper included) |
 | Collector | running on `http://localhost:3000` (or configured via env) |
 
@@ -41,7 +41,7 @@ cp src/test/resources/application-local.yaml src/test/resources/application-loca
 ## Project Structure
 
 ```
-suite-template/
+sapbtp-integration-testsuite-template/
 ├── build.gradle.kts                          # Gradle build — framework dependency here
 ├── settings.gradle.kts                       # Project name — rename for your project
 └── src/test/
@@ -105,7 +105,7 @@ diagnostic message rather than failing with a cryptic error. Check the console o
 The framework is referenced as an external versioned Maven artifact — no framework code is copied here.
 
 ```kotlin
-testImplementation("me.cxdev.sapbtp:integration-testing:1.0.0-SNAPSHOT")
+testImplementation("me.cxdev.sapbtp:sapbtp-integration-testing:1.0.0-SNAPSHOT")
 ```
 
 To update the framework, change the version number in `build.gradle.kts`.

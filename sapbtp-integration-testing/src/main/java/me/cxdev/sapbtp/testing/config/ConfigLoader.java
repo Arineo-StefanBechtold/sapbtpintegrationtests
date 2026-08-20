@@ -47,7 +47,7 @@ public class ConfigLoader {
     }
 
     private Map<String, Object> loadYaml(CpiTestProfile profile) {
-        String profileSpecific = "integration-testing-config-" + profile.fileSuffix() + ".yaml";
+        String profileSpecific = "sapbtp-integration-testing-config-" + profile.fileSuffix() + ".yaml";
         try (InputStream profileStream = openConfig(profileSpecific)) {
             if (profileStream != null) {
                 return extractTestMap(profileStream);
@@ -56,9 +56,9 @@ public class ConfigLoader {
             throw new IllegalStateException("Unable to close configuration stream for profile " + profile, e);
         }
 
-        try (InputStream defaultStream = openConfig("integration-testing-config.yaml")) {
+        try (InputStream defaultStream = openConfig("sapbtp-integration-testing-config.yaml")) {
             if (defaultStream == null) {
-                throw new ConfigValidationException("Missing configuration resource: integration-testing-config.yaml");
+                throw new ConfigValidationException("Missing configuration resource: sapbtp-integration-testing-config.yaml");
             }
             return extractTestMap(defaultStream);
         } catch (IOException e) {

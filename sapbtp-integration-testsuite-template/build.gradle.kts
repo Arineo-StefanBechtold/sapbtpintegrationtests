@@ -12,12 +12,12 @@ repositories {
 
 dependencies {
     // Framework as external versioned dependency — do NOT copy framework code into this project
-    testImplementation("me.cxdev.sapbtp:integration-testing:1.0.0-SNAPSHOT")
+    testImplementation("me.cxdev.sapbtp:sapbtp-integration-testing:1.0.0-SNAPSHOT")
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 

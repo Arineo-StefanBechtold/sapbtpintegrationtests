@@ -15,7 +15,7 @@ class ConfigLoaderTest {
     @Test
     void missingRequiredFieldThrowsSpecificValidationMessage() throws IOException {
         Path configDir = Files.createDirectories(Path.of("build/test-config/config-missing"));
-        Files.writeString(configDir.resolve("integration-testing-config-local.yaml"), """
+        Files.writeString(configDir.resolve("sapbtp-integration-testing-config-local.yaml"), """
                 cpi:
                   test:
                     monitoringUser: "user"
@@ -32,7 +32,7 @@ class ConfigLoaderTest {
     @Test
     void environmentVariablesOverrideYamlValues() throws IOException {
         Path configDir = Files.createDirectories(Path.of("build/test-config/config-env"));
-        Files.writeString(configDir.resolve("integration-testing-config-local.yaml"), """
+        Files.writeString(configDir.resolve("sapbtp-integration-testing-config-local.yaml"), """
                 cpi:
                   test:
                     monitoringBaseUrl: "https://yaml.example.test"
@@ -66,7 +66,7 @@ class ConfigLoaderTest {
     @Test
     void profileSwitchingLoadsProfileSpecificFile() throws IOException {
         Path configDir = Files.createDirectories(Path.of("build/test-config/config-profile"));
-        Files.writeString(configDir.resolve("integration-testing-config-local.yaml"), """
+        Files.writeString(configDir.resolve("sapbtp-integration-testing-config-local.yaml"), """
                 cpi:
                   test:
                     monitoringBaseUrl: "https://local.example.test"
@@ -74,7 +74,7 @@ class ConfigLoaderTest {
                     monitoringPassword: "local-password"
                     collectorBaseUrl: "http://local-collector"
                 """);
-        Files.writeString(configDir.resolve("integration-testing-config-staging.yaml"), """
+        Files.writeString(configDir.resolve("sapbtp-integration-testing-config-staging.yaml"), """
                 cpi:
                   test:
                     monitoringBaseUrl: "https://staging.example.test"
@@ -96,7 +96,7 @@ class ConfigLoaderTest {
     @Test
     void inboundSettingsFallBackToMonitoringSettings() throws IOException {
         Path configDir = Files.createDirectories(Path.of("build/test-config/config-inbound-fallback"));
-        Files.writeString(configDir.resolve("integration-testing-config-local.yaml"), """
+        Files.writeString(configDir.resolve("sapbtp-integration-testing-config-local.yaml"), """
                 cpi:
                   test:
                     monitoringBaseUrl: "https://monitoring.example.test"
