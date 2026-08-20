@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: CPI Test Collector API
-  version: 0.1.0
+  title: SAP BTP Integration Test Collector API
+  version: 1.0.0
   description: >
-    API for a minimal collector service used in CPI integration tests.
+    Collector service running on SAP BTP to receive messages from the SAP BTP Integration and support the SAP BTP integration testing framework.
     The collector stores multiple documents per Message ID with sequence numbers.
 servers:
   - url: http://localhost:8080

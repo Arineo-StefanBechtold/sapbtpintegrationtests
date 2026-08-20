@@ -1,6 +1,6 @@
-# CPI Test Collector
+# SAP BTP Integration Test Collector
 
-A minimal HTTP collector service for CPI integration tests.
+Collector service running on SAP BTP to receive messages from the SAP BTP Integration and support the SAP BTP integration testing framework.
 
 ## Quick Start
 
@@ -58,10 +58,9 @@ cf login -a <API_ENDPOINT> -u <USER> -o <ORG> -s <SPACE>
 
 ### Push the application
 
-From the `collector` directory, run:
+From the `sapbtp-integration-test-collector` directory, run:
 
 ```bash
-cd collector
 cf push
 ```
 
@@ -72,19 +71,19 @@ CF will pick up `manifest.yaml` automatically and deploy the app using the Node.
 You can override any environment variable after deployment:
 
 ```bash
-cf set-env cpi-test-collector COLLECTOR_TTL_HOURS 4
-cf set-env cpi-test-collector COLLECTOR_DATA_DIR /tmp/data
-cf restage cpi-test-collector
+cf set-env sapbtp-integration-test-collector COLLECTOR_TTL_HOURS 4
+cf set-env sapbtp-integration-test-collector COLLECTOR_DATA_DIR /tmp/data
+cf restage sapbtp-integration-test-collector
 ```
 
 ### Check the app
 
 ```bash
-cf app cpi-test-collector          # status, URLs, memory
-cf logs cpi-test-collector --recent  # recent log output
+cf app sapbtp-integration-test-collector          # status, URLs, memory
+cf logs sapbtp-integration-test-collector --recent  # recent log output
 ```
 
-The app will be reachable at the route CF assigns, e.g. `https://cpi-test-collector.<cf-domain>/health`.
+The app will be reachable at the route CF assigns, e.g. `https://sapbtp-integration-test-collector.<cf-domain>/health`.
 
 ---
 

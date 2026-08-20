@@ -1,10 +1,10 @@
 ---
 applications:
-  - name: cpi-test-collector
+  - name: sapbtp-integration-test-collector
     path: .
     buildpacks:
       - nodejs_buildpack
-    memory: 256M
+    memory: 64M
     instances: 1
     command: npm start
     health-check-type: http

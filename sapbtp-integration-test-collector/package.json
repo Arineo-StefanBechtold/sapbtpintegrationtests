@@ -1,7 +1,7 @@
 {
-  "name": "cpi-test-collector",
-  "version": "0.1.0",
-  "description": "Minimal collector service for CPI integration tests",
+  "name": "sapbtp-integration-test-collector",
+  "version": "1.0.0",
+  "description": "Collector service running on SAP BTP to receive messages from the SAP BTP Integration and support the SAP BTP integration testing framework.",
   "main": "src/server.js",
   "engines": {
     "node": ">=22"
