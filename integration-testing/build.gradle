@@ -7,8 +7,41 @@ version = '1.0.0-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
+}
+
+// The default artifact targets JDK 25. A second artifact is built with the
+// JDK 21 compiler and carries the jdk21 classifier.
+tasks.named('compileJava', JavaCompile) {
+    options.release = 25
+}
+
+def jdk21Compiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(21)
+}
+
+def compileJavaJdk21 = tasks.register('compileJavaJdk21', JavaCompile) {
+    description = 'Compiles the main sources for JDK 21.'
+    group = 'build'
+    source = sourceSets.main.java
+    classpath = sourceSets.main.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('classes/java/main-jdk21')
+    javaCompiler = jdk21Compiler
+    options.release = 21
+}
+
+def jarJdk21 = tasks.register('jarJdk21', Jar) {
+    description = 'Assembles the JDK 21 variant of the library.'
+    group = 'build'
+    dependsOn compileJavaJdk21, tasks.named('processResources')
+    archiveClassifier = 'jdk21'
+    from layout.buildDirectory.dir('classes/java/main-jdk21')
+    from sourceSets.main.output.resourcesDir
+}
+
+tasks.named('build') {
+    dependsOn jarJdk21
 }
 
 repositories {
