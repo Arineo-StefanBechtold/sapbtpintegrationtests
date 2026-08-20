@@ -11,8 +11,8 @@ Copy this folder into your project, rename it, and adapt it to your integration 
 
 | Tool | Version |
 |------|---------|
-| Java | 17+ |
-| Gradle | 8.x (wrapper included) |
+| Java | 21+ |
+| Gradle | 9.7 (wrapper included) |
 | Collector | running on `http://localhost:3000` (or configured via env) |
 
 ### Local test run
@@ -105,7 +105,7 @@ diagnostic message rather than failing with a cryptic error. Check the console o
 The framework is referenced as an external versioned Maven artifact — no framework code is copied here.
 
 ```kotlin
-testImplementation("me.cxdev.testing:cpi-test-framework:1.0.0-SNAPSHOT")
+testImplementation("me.cxdev.sapbtp:integration-testing:1.0.0-SNAPSHOT")
 ```
 
 To update the framework, change the version number in `build.gradle.kts`.

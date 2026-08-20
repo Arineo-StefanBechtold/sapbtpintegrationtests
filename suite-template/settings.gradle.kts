@@ -1,1 +1,1 @@
-rootProject.name = "my-project-suite"
+rootProject.name = "suite-template"

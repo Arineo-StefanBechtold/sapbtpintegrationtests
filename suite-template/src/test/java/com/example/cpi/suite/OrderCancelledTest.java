@@ -1,9 +1,9 @@
 package com.example.cpi.suite;
 
-import me.cxdev.testing.cpi.framework.CpiSendResult;
-import me.cxdev.testing.cpi.framework.CpiTestContext;
-import me.cxdev.testing.cpi.framework.CpiTestDsl;
-import me.cxdev.testing.cpi.framework.annotation.CpiTest;
+import me.cxdev.sapbtp.testing.framework.CpiSendResult;
+import me.cxdev.sapbtp.testing.framework.CpiTestContext;
+import me.cxdev.sapbtp.testing.framework.CpiTestDsl;
+import me.cxdev.sapbtp.testing.framework.annotation.CpiTest;
 import org.junit.jupiter.api.Test;
 
 /**
